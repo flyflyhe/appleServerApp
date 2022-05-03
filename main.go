@@ -11,12 +11,12 @@ import (
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
-	"fyne.io/fyne/v2/cmd/fyne_demo/tutorials"
 	"fyne.io/fyne/v2/cmd/fyne_settings/settings"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
+	"github.com/flyflyhe/appleServerApp/widgets"
 )
 
 func init() {
@@ -60,7 +60,7 @@ func main() {
 	title := widget.NewLabel("Component name")
 	intro := widget.NewLabel("An introduction would probably go\nhere, as well as a")
 	intro.Wrapping = fyne.TextWrapWord
-	setTutorial := func(t tutorials.Tutorial) {
+	setAppWidget := func(t widgets.AppWidget) {
 		if fyne.CurrentDevice().IsMobile() {
 			child := a.NewWindow(t.Title)
 			topWindow = child
@@ -79,12 +79,12 @@ func main() {
 		content.Refresh()
 	}
 
-	tutorial := container.NewBorder(
+	borderWidget := container.NewBorder(
 		container.NewVBox(title, widget.NewSeparator(), intro), nil, nil, nil, content)
 	if fyne.CurrentDevice().IsMobile() {
-		w.SetContent(makeNav(setTutorial, false))
+		w.SetContent(makeNav(setAppWidget, false))
 	} else {
-		split := container.NewHSplit(makeNav(setTutorial, true), tutorial)
+		split := container.NewHSplit(makeNav(setAppWidget, true), borderWidget)
 		split.Offset = 0.2
 		w.SetContent(split)
 	}
@@ -174,15 +174,15 @@ func makeMenu(a fyne.App, w fyne.Window) *fyne.MainMenu {
 	)
 }
 
-func makeNav(setTutorial func(tutorial tutorials.Tutorial), loadPrevious bool) fyne.CanvasObject {
+func makeNav(setAppWidget func(appWidget widgets.AppWidget), loadPrevious bool) fyne.CanvasObject {
 	a := fyne.CurrentApp()
 
 	tree := &widget.Tree{
 		ChildUIDs: func(uid string) []string {
-			return tutorials.TutorialIndex[uid]
+			return widgets.AppWidgetsIndex[uid]
 		},
 		IsBranch: func(uid string) bool {
-			children, ok := tutorials.TutorialIndex[uid]
+			children, ok := widgets.AppWidgetsIndex[uid]
 
 			return ok && len(children) > 0
 		},
@@ -190,7 +190,7 @@ func makeNav(setTutorial func(tutorial tutorials.Tutorial), loadPrevious bool) f
 			return widget.NewLabel("Collection Widgets")
 		},
 		UpdateNode: func(uid string, branch bool, obj fyne.CanvasObject) {
-			t, ok := tutorials.Tutorials[uid]
+			t, ok := widgets.AppWidgets[uid]
 			if !ok {
 				fyne.LogError("Missing tutorial panel: "+uid, nil)
 				return
@@ -198,9 +198,9 @@ func makeNav(setTutorial func(tutorial tutorials.Tutorial), loadPrevious bool) f
 			obj.(*widget.Label).SetText(t.Title)
 		},
 		OnSelected: func(uid string) {
-			if t, ok := tutorials.Tutorials[uid]; ok {
+			if t, ok := widgets.AppWidgets[uid]; ok {
 				a.Preferences().SetString(preferenceCurrentTutorial, uid)
-				setTutorial(t)
+				setAppWidget(t)
 			}
 		},
 	}

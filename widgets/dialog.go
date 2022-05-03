@@ -1,4 +1,4 @@
-package tutorials
+package widgets
 
 import (
 	"errors"

@@ -1,18 +1,16 @@
-package tutorials
+package widgets
 
 import (
 	"fyne.io/fyne/v2"
 )
 
-// Tutorial defines the data structure for a tutorial
-type Tutorial struct {
+type AppWidget struct {
 	Title, Intro string
 	View         func(w fyne.Window) fyne.CanvasObject
 }
 
 var (
-	// Tutorials defines the metadata for each tutorial
-	Tutorials = map[string]Tutorial{
+	AppWidgets = map[string]AppWidget{
 		"welcome": {"Welcome", "", welcomeScreen},
 		"canvas": {"Canvas",
 			"See the canvas capabilities.",
@@ -140,8 +138,8 @@ var (
 		},
 	}
 
-	// TutorialIndex  defines how our tutorials should be laid out in the index tree
-	TutorialIndex = map[string][]string{
+	//index tree
+	AppWidgetsIndex = map[string][]string{
 		"":            {"welcome", "canvas", "animations", "icons", "widgets", "collections", "containers", "dialogs", "windows", "binding", "advanced"},
 		"collections": {"list", "table", "tree"},
 		"containers":  {"apptabs", "border", "box", "center", "doctabs", "grid", "scroll", "split"},
