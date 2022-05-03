@@ -2,12 +2,8 @@ package main
 
 import (
 	"fmt"
-	"io/fs"
-	"io/ioutil"
 	"log"
 	"net/url"
-	"os"
-	"strings"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -16,31 +12,8 @@ import (
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
-	"github.com/flyflyhe/appleServerApp/widgets"
+	"github.com/flyflyhe/appleServerApp/component"
 )
-
-func init() {
-	fontPath := "C:/Windows/Fonts/"
-
-	fontPaths := paths(fontPath)
-	for _, path := range fontPaths {
-		os.Setenv("FYNE_FONT", fontPath+path.Name())
-		//楷体:simkai.ttf
-		//黑体:simhei.ttf
-		if strings.Contains(path.Name(), "simkai.ttf") {
-			os.Setenv("FYNE_FONT", fontPath+path.Name())
-			break
-		}
-	}
-}
-
-func paths(path string) []fs.FileInfo {
-	files, err := ioutil.ReadDir(path)
-	if err != nil {
-		panic(err)
-	}
-	return files
-}
 
 const preferenceCurrentTutorial = "currentTutorial"
 
@@ -60,7 +33,7 @@ func main() {
 	title := widget.NewLabel("Component name")
 	intro := widget.NewLabel("An introduction would probably go\nhere, as well as a")
 	intro.Wrapping = fyne.TextWrapWord
-	setAppWidget := func(t widgets.AppWidget) {
+	setComponent := func(t component.AppView) {
 		if fyne.CurrentDevice().IsMobile() {
 			child := a.NewWindow(t.Title)
 			topWindow = child
@@ -79,12 +52,12 @@ func main() {
 		content.Refresh()
 	}
 
-	borderWidget := container.NewBorder(
+	tutorial := container.NewBorder(
 		container.NewVBox(title, widget.NewSeparator(), intro), nil, nil, nil, content)
 	if fyne.CurrentDevice().IsMobile() {
-		w.SetContent(makeNav(setAppWidget, false))
+		w.SetContent(makeNav(setComponent, false))
 	} else {
-		split := container.NewHSplit(makeNav(setAppWidget, true), borderWidget)
+		split := container.NewHSplit(makeNav(setComponent, true), tutorial)
 		split.Offset = 0.2
 		w.SetContent(split)
 	}
@@ -174,15 +147,15 @@ func makeMenu(a fyne.App, w fyne.Window) *fyne.MainMenu {
 	)
 }
 
-func makeNav(setAppWidget func(appWidget widgets.AppWidget), loadPrevious bool) fyne.CanvasObject {
+func makeNav(setComponent func(com component.AppView), loadPrevious bool) fyne.CanvasObject {
 	a := fyne.CurrentApp()
 
 	tree := &widget.Tree{
 		ChildUIDs: func(uid string) []string {
-			return widgets.AppWidgetsIndex[uid]
+			return component.AppViewsIndex[uid]
 		},
 		IsBranch: func(uid string) bool {
-			children, ok := widgets.AppWidgetsIndex[uid]
+			children, ok := component.AppViewsIndex[uid]
 
 			return ok && len(children) > 0
 		},
@@ -190,7 +163,7 @@ func makeNav(setAppWidget func(appWidget widgets.AppWidget), loadPrevious bool) 
 			return widget.NewLabel("Collection Widgets")
 		},
 		UpdateNode: func(uid string, branch bool, obj fyne.CanvasObject) {
-			t, ok := widgets.AppWidgets[uid]
+			t, ok := component.AppViews[uid]
 			if !ok {
 				fyne.LogError("Missing tutorial panel: "+uid, nil)
 				return
@@ -198,9 +171,10 @@ func makeNav(setAppWidget func(appWidget widgets.AppWidget), loadPrevious bool) 
 			obj.(*widget.Label).SetText(t.Title)
 		},
 		OnSelected: func(uid string) {
-			if t, ok := widgets.AppWidgets[uid]; ok {
+			if t, ok := component.AppViews[uid]; ok {
+				fmt.Println(uid)
 				a.Preferences().SetString(preferenceCurrentTutorial, uid)
-				setAppWidget(t)
+				setComponent(t)
 			}
 		},
 	}

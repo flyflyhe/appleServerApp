@@ -1,21 +1,22 @@
-package widgets
+package component
 
 import (
 	"fyne.io/fyne/v2"
 )
 
-type AppWidget struct {
+type AppView struct {
 	Title, Intro string
 	View         func(w fyne.Window) fyne.CanvasObject
 }
 
 var (
-	AppWidgets = map[string]AppWidget{
+	AppViews = map[string]AppView{
 		"welcome": {"Welcome", "", welcomeScreen},
 		"canvas": {"Canvas",
 			"See the canvas capabilities.",
 			canvasScreen,
 		},
+		"searchOrder": {"查询订单", "信息", searchOrderView},
 		"animations": {"Animations",
 			"See how to animate components.",
 			makeAnimationScreen,
@@ -139,8 +140,9 @@ var (
 	}
 
 	//index tree
-	AppWidgetsIndex = map[string][]string{
-		"":            {"welcome", "canvas", "animations", "icons", "widgets", "collections", "containers", "dialogs", "windows", "binding", "advanced"},
+	AppViewsIndex = map[string][]string{
+		//"":            {"welcome", "searchOrder", "canvas", "animations", "icons", "widgets", "collections", "containers", "dialogs", "windows", "binding", "advanced"},
+		"":            {"welcome", "searchOrder"},
 		"collections": {"list", "table", "tree"},
 		"containers":  {"apptabs", "border", "box", "center", "doctabs", "grid", "scroll", "split"},
 		"widgets":     {"accordion", "button", "card", "entry", "form", "input", "progress", "text", "toolbar"},

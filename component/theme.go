@@ -1,4 +1,4 @@
-package widgets
+package component
 
 import (
 	"image/color"
