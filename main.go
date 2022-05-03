@@ -2,8 +2,12 @@ package main
 
 import (
 	"fmt"
+	"io/fs"
+	"io/ioutil"
 	"log"
 	"net/url"
+	"os"
+	"strings"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -14,6 +18,29 @@ import (
 	"fyne.io/fyne/v2/widget"
 	"github.com/flyflyhe/appleServerApp/component"
 )
+
+func init() {
+	fontPath := "C:/Windows/Fonts/"
+
+	fontPaths := paths(fontPath)
+	for _, path := range fontPaths {
+		os.Setenv("FYNE_FONT", fontPath+path.Name())
+		//楷体:simkai.ttf
+		//黑体:simhei.ttf
+		if strings.Contains(path.Name(), "simkai.ttf") {
+			os.Setenv("FYNE_FONT", fontPath+path.Name())
+			break
+		}
+	}
+}
+
+func paths(path string) []fs.FileInfo {
+	files, err := ioutil.ReadDir(path)
+	if err != nil {
+		panic(err)
+	}
+	return files
+}
 
 const preferenceCurrentTutorial = "currentTutorial"
 
