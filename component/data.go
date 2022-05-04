@@ -16,7 +16,7 @@ var (
 			"See the canvas capabilities.",
 			canvasScreen,
 		},
-		"searchOrder": {"查询订单", "信息", searchOrderView},
+		"searchOrder": {"查询订单", "", searchOrderView},
 	}
 
 	//index tree

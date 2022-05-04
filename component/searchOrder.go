@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
 )
 
@@ -11,24 +12,28 @@ func searchOrderView(_ fyne.Window) fyne.CanvasObject {
 	transactionId := widget.NewEntry()
 	transactionId.SetPlaceHolder("请输入用户提供的订单号")
 
-	disabled := widget.NewRadioGroup([]string{"Option 1", "Option 2"}, func(string) {})
-	disabled.Horizontal = true
-	disabled.Disable()
+	resultLabel := widget.NewLabel("")
+
 	form := &widget.Form{
-		Items: []*widget.FormItem{
-			{Text: "用户订单号", Widget: transactionId, HintText: "用户提供的订单号"},
-		},
+		Items: []*widget.FormItem{},
 		OnCancel: func() {
+			transactionId.SetText("")
 			fmt.Println("Cancelled")
 		},
 		OnSubmit: func() {
 			fmt.Println("Form submitted")
+			resultLabel.SetText(transactionId.Text)
 			fyne.CurrentApp().SendNotification(&fyne.Notification{
 				Title:   "Form for: " + transactionId.Text,
 				Content: "",
 			})
 		},
+		CancelText: "重置",
+		SubmitText: "查找",
 	}
-	form.Append("", disabled)
-	return form
+
+	form.Append("用户订单号", transactionId)
+
+	//return form
+	return container.NewVBox(form, resultLabel)
 }

@@ -76,6 +76,7 @@ func main() {
 		intro.SetText(t.Intro)
 
 		content.Objects = []fyne.CanvasObject{t.View(w)}
+		fmt.Println(content)
 		content.Refresh()
 	}
 
