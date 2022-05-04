@@ -2,7 +2,11 @@ module github.com/flyflyhe/appleServerApp
 
 go 1.18
 
-require fyne.io/fyne/v2 v2.1.4
+require (
+	fyne.io/fyne/v2 v2.1.4
+	github.com/dvsekhvalnov/jose2go v1.5.0
+	github.com/syyongx/php2go v0.9.6
+)
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect

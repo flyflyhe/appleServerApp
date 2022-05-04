@@ -90,6 +90,7 @@ func main() {
 		w.SetContent(split)
 	}
 	w.Resize(fyne.NewSize(640, 460))
+	w.FixedSize()
 	w.ShowAndRun()
 }
 

@@ -6,6 +6,8 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
+	"github.com/flyflyhe/appleServerApp/services/apple"
+	"github.com/flyflyhe/appleServerApp/services/jsonHelper"
 )
 
 func searchOrderView(_ fyne.Window) fyne.CanvasObject {
@@ -18,15 +20,31 @@ func searchOrderView(_ fyne.Window) fyne.CanvasObject {
 		Items: []*widget.FormItem{},
 		OnCancel: func() {
 			transactionId.SetText("")
+			resultLabel.SetText("")
 			fmt.Println("Cancelled")
 		},
 		OnSubmit: func() {
 			fmt.Println("Form submitted")
-			resultLabel.SetText(transactionId.Text)
-			fyne.CurrentApp().SendNotification(&fyne.Notification{
-				Title:   "Form for: " + transactionId.Text,
-				Content: "",
-			})
+			orderArr, err := apple.CheckOrder(transactionId.Text, apple.GetAppleJwtToken())
+			if err != nil {
+				resultLabel.SetText(err.Error())
+			} else {
+				orderInfoJsonPretty := ""
+				for _, v := range orderArr {
+					t, err := jsonHelper.PrettyString(v)
+					if err != nil {
+						resultLabel.SetText(err.Error())
+						return
+					} else {
+						orderInfoJsonPretty += t
+					}
+				}
+				resultLabel.SetText(orderInfoJsonPretty)
+			}
+			// fyne.CurrentApp().SendNotification(&fyne.Notification{
+			// 	Title:   "Form for: " + transactionId.Text,
+			// 	Content: "",
+			// })
 		},
 		CancelText: "重置",
 		SubmitText: "查找",
