@@ -1,11 +1,11 @@
 package main
 
 import (
+	"embed"
 	"fmt"
+	"io/fs"
 	"log"
 	"net/url"
-	"os"
-	"runtime"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -15,23 +15,27 @@ import (
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	"github.com/flyflyhe/appleServerApp/component"
+	"github.com/syyongx/php2go"
 )
 
+//go:embed config/*
+var AppConfigFiles embed.FS
+
 func init() {
-	projectPath, err := os.Getwd()
-	if err != nil {
-		panic(err)
+
+	configs, _ := fs.ReadDir(AppConfigFiles, "config")
+
+	//打印出文件名称
+	for _, template := range configs {
+		fmt.Printf("%q\n", "config/"+template.Name())
+		s, err := php2go.FileGetContents("config/" + template.Name())
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println(s)
 	}
 
-	var ttfPath string
-
-	if runtime.GOOS == "windows" {
-		ttfPath = projectPath + "\\config\\simkai.ttf"
-	} else {
-		ttfPath = projectPath + "/config/simkai.ttf"
-	}
-
-	os.Setenv("FYNE_FONT", ttfPath)
+	//os.Setenv("FYNE_FONT", "config/simkai.ttl")
 }
 
 const preferenceCurrentTutorial = "currentTutorial"

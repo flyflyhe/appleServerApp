@@ -5,12 +5,9 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"encoding/pem"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
-	"runtime"
 	"time"
 
 	jose "github.com/dvsekhvalnov/jose2go"
@@ -48,22 +45,10 @@ func init() {
 	var configPath string
 	var err error
 
-	projectPath, err := os.Getwd()
-	if err != nil {
-		panic(err)
-	}
+	privatePath = "config/private.pem"
+	applePath = "config/apple.pem"
+	configPath = "config/config.yaml"
 
-	fmt.Println(projectPath)
-
-	if runtime.GOOS == "windows" {
-		privatePath = projectPath + "\\config\\private.pem"
-		applePath = projectPath + "\\config\\apple.pem"
-		configPath = projectPath + "\\config\\config.yaml"
-	} else {
-		privatePath = projectPath + "/config/private.pem"
-		applePath = projectPath + "/config/apple.pem"
-		configPath = projectPath + "/config/config.yaml"
-	}
 	if privateKey, err = php2go.FileGetContents(privatePath); err != nil {
 		panic(err)
 	}
