@@ -2,12 +2,10 @@ package main
 
 import (
 	"fmt"
-	"io/fs"
-	"io/ioutil"
 	"log"
 	"net/url"
 	"os"
-	"strings"
+	"runtime"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -20,26 +18,20 @@ import (
 )
 
 func init() {
-	fontPath := "C:/Windows/Fonts/"
-
-	fontPaths := paths(fontPath)
-	for _, path := range fontPaths {
-		os.Setenv("FYNE_FONT", fontPath+path.Name())
-		//楷体:simkai.ttf
-		//黑体:simhei.ttf
-		if strings.Contains(path.Name(), "simkai.ttf") {
-			os.Setenv("FYNE_FONT", fontPath+path.Name())
-			break
-		}
-	}
-}
-
-func paths(path string) []fs.FileInfo {
-	files, err := ioutil.ReadDir(path)
+	projectPath, err := os.Getwd()
 	if err != nil {
 		panic(err)
 	}
-	return files
+
+	var ttfPath string
+
+	if runtime.GOOS == "windows" {
+		ttfPath = projectPath + "\\config\\simkai.ttf"
+	} else {
+		ttfPath = projectPath + "/config/simkai.ttf"
+	}
+
+	os.Setenv("FYNE_FONT", ttfPath)
 }
 
 const preferenceCurrentTutorial = "currentTutorial"
@@ -47,10 +39,10 @@ const preferenceCurrentTutorial = "currentTutorial"
 var topWindow fyne.Window
 
 func main() {
-	a := app.NewWithID("io.fyne.demo")
+	a := app.NewWithID("io.apple.search")
 	a.SetIcon(theme.FyneLogo())
 	logLifecycle(a)
-	w := a.NewWindow("Fyne Demo")
+	w := a.NewWindow("apple Service")
 	topWindow = w
 
 	w.SetMainMenu(makeMenu(a, w))
