@@ -13,6 +13,7 @@ import (
 	jose "github.com/dvsekhvalnov/jose2go"
 	"github.com/dvsekhvalnov/jose2go/compact"
 	"github.com/dvsekhvalnov/jose2go/keys/ecc"
+	"github.com/flyflyhe/appleServerApp/config"
 	"github.com/syyongx/php2go"
 	"gopkg.in/yaml.v2"
 )
@@ -27,7 +28,7 @@ type AppleHeaders struct {
 	X5c []string `json:"x5c"`
 }
 
-type Config struct {
+type AppleJwtConfig struct {
 	Kid string `yaml:"kid"`
 	Iss string `yaml:"iss"`
 	Bid string `yaml:"bid"`
@@ -37,39 +38,19 @@ var privateKey string
 
 var appleKey string
 
-var config Config
+var appleJwtConfig AppleJwtConfig
 
 func init() {
-	var privatePath string
-	var applePath string
-	var configPath string
-	var err error
-
-	privatePath = "config/private.pem"
-	applePath = "config/apple.pem"
-	configPath = "config/config.yaml"
-
-	if privateKey, err = php2go.FileGetContents(privatePath); err != nil {
-		panic(err)
-	}
-
-	if appleKey, err = php2go.FileGetContents(applePath); err != nil {
-		panic(err)
-	}
-
-	// 读取文件
-	b, err := ioutil.ReadFile(configPath)
-	if err != nil {
-		log.Print(err)
-		return
-	}
 
 	// 转换成Struct
-	err = yaml.Unmarshal(b, &config)
-	if err != nil {
-		panic(err)
+	if err := yaml.Unmarshal(config.GetYamlConfig(), &appleJwtConfig); err != nil {
+		if err != nil {
+			panic(err)
+		}
 	}
-	log.Println(config)
+
+	privateKey = string(config.GetApplePrivateKey())
+	appleKey = string(config.GetAppleRootCaPem())
 }
 
 type ErrMsg struct {
@@ -194,7 +175,7 @@ func CheckOrder(orderId, token string) (result []string, err error) {
 func GetAppleJwtToken() string {
 	headerConfig := map[string]interface{}{
 		"alg": "ES256",
-		"kid": config.Kid,
+		"kid": appleJwtConfig.Kid,
 		"typ": "JWT",
 	}
 
@@ -202,11 +183,11 @@ func GetAppleJwtToken() string {
 
 	now := time.Now()
 	payloadConfig := map[string]interface{}{
-		"iss": config.Iss,
+		"iss": appleJwtConfig.Iss,
 		"iat": now.Unix(),
 		"exp": now.Add(1 * time.Hour).Unix(),
 		"aud": "appstoreconnect-v1",
-		"bid": config.Bid,
+		"bid": appleJwtConfig.Bid,
 	}
 
 	payload, _ := json.Marshal(payloadConfig)

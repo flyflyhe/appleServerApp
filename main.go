@@ -1,9 +1,7 @@
 package main
 
 import (
-	"embed"
 	"fmt"
-	"io/fs"
 	"log"
 	"net/url"
 
@@ -11,31 +9,14 @@ import (
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/cmd/fyne_settings/settings"
 	"fyne.io/fyne/v2/container"
-	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	"github.com/flyflyhe/appleServerApp/component"
-	"github.com/syyongx/php2go"
+	"github.com/flyflyhe/appleServerApp/themes"
 )
-
-//go:embed config/*
-var AppConfigFiles embed.FS
 
 func init() {
 
-	configs, _ := fs.ReadDir(AppConfigFiles, "config")
-
-	//打印出文件名称
-	for _, template := range configs {
-		fmt.Printf("%q\n", "config/"+template.Name())
-		s, err := php2go.FileGetContents("config/" + template.Name())
-		if err != nil {
-			panic(err)
-		}
-		fmt.Println(s)
-	}
-
-	//os.Setenv("FYNE_FONT", "config/simkai.ttl")
 }
 
 const preferenceCurrentTutorial = "currentTutorial"
@@ -49,6 +30,7 @@ func main() {
 	w := a.NewWindow("apple Service")
 	topWindow = w
 
+	a.Settings().SetTheme(&themes.CTheme{})
 	w.SetMainMenu(makeMenu(a, w))
 	w.SetMaster()
 
@@ -209,16 +191,16 @@ func makeNav(setComponent func(com component.AppView), loadPrevious bool) fyne.C
 		tree.Select(currentPref)
 	}
 
-	themes := fyne.NewContainerWithLayout(layout.NewGridLayout(2),
-		widget.NewButton("Dark", func() {
-			a.Settings().SetTheme(theme.DarkTheme())
-		}),
-		widget.NewButton("Light", func() {
-			a.Settings().SetTheme(theme.LightTheme())
-		}),
-	)
+	// themes := fyne.NewContainerWithLayout(layout.NewGridLayout(2),
+	// 	widget.NewButton("Dark", func() {
+	// 		a.Settings().SetTheme(theme.DarkTheme())
+	// 	}),
+	// 	widget.NewButton("Light", func() {
+	// 		a.Settings().SetTheme(theme.LightTheme())
+	// 	}),
+	// )
 
-	return container.NewBorder(nil, themes, nil, nil, tree)
+	return container.NewBorder(nil, nil, nil, nil, tree)
 }
 
 func shortcutFocused(s fyne.Shortcut, w fyne.Window) {

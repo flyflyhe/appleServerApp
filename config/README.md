@@ -4,3 +4,12 @@ config.yaml
     kid: 
     iss: 
     bid: 
+
+```
+生成bundled.go
+
+ fyne bundle private.pem > bundled.go
+ fyne bundle -append apple.pem >> bundled.go
+ fyne bundle -append config.yaml >> bundled.go
+ fyne bundle -append simkai.ttf >> bundled.go
+```
