@@ -23,6 +23,15 @@ type LookUp struct {
 	SignedTransactions []string `json:"signedTransactions"`
 }
 
+type TransactionHistory struct {
+	Revision           string   `json:"revision"`
+	BundleId           string   `json:"bundleId"`
+	AppAppleId         int      `json:"appAppleId"`
+	Environment        string   `json:"environment"`
+	HasMore            bool     `json:"hasMore"`
+	SignedTransactions []string `json:"signedTransactions"`
+}
+
 type AppleHeaders struct {
 	Alg string   `json:"alg"`
 	X5c []string `json:"x5c"`
@@ -106,6 +115,120 @@ func CheckOrder(orderId, token string) (result []string, err error) {
 	}
 
 	for _, transaction := range lookUp.SignedTransactions {
+		parts, _ := compact.Parse(transaction)
+
+		headers := parts[0]
+		//payload, _ := base64url.Decode(string(parts[1]))
+		//signature, _ := base64url.Decode(string(parts[2]))
+
+		appleHeader := &AppleHeaders{}
+
+		if err := json.Unmarshal(headers, appleHeader); err != nil {
+			panic(err)
+		}
+
+		//证书链校验 c1 -> c2 -> c3 -> apple
+		certificates := make([]string, 0)
+		for _, v := range appleHeader.X5c {
+			certificate := "-----BEGIN CERTIFICATE-----\n"
+			certificate += php2go.ChunkSplit(v, 64, "\n")
+			certificate += "-----END CERTIFICATE-----\n"
+			certificates = append(certificates, certificate)
+		}
+
+		certificates = append(certificates, appleKey)
+
+		block, _ := pem.Decode([]byte(certificates[0]))
+		if block == nil {
+			panic("failed to parse certificate PEM")
+		}
+		certFirst, err := x509.ParseCertificate(block.Bytes)
+		if err != nil {
+			panic("failed to parse certificate: " + err.Error())
+		}
+
+		for i := 1; i < len(certificates); i++ {
+			block, _ := pem.Decode([]byte(certificates[i]))
+			if block == nil {
+				panic("failed to parse certificate PEM")
+			}
+			cert, err := x509.ParseCertificate(block.Bytes)
+			if err != nil {
+				panic("failed to parse certificate: " + err.Error())
+			}
+
+			if err = certFirst.CheckSignatureFrom(cert); err != nil {
+				panic(err)
+			}
+
+			certFirst = cert
+		}
+
+		//decode 传入第一个证书
+		var ecdsaPublic *ecdsa.PublicKey
+		if ecdsaPublic, err = ecc.ReadPublic([]byte(certificates[0])); err != nil {
+			panic(err)
+		}
+
+		t, _, err := jose.Decode(transaction, ecdsaPublic)
+		if err != nil {
+			panic(err)
+		}
+
+		result = append(result, t)
+	}
+
+	return result, nil
+}
+
+func GetTransactionHistory(originalTransactionId, token, revision string) (result []string, err error) {
+	defer func() {
+		if err2 := recover(); err2 != nil {
+			err = NewErrMsg(err2.(string)) //这里
+		}
+	}()
+
+	url := "https://api.storekit.itunes.apple.com/inApps/v1/history/" + originalTransactionId
+
+	if revision != "" {
+		url += "?revision=" + revision
+	}
+
+	var request *http.Request
+	if request, err = http.NewRequest(http.MethodGet, url, nil); err != nil {
+		panic(err)
+	}
+
+	request.Header.Add("Authorization", "Bearer "+token)
+
+	res, err := http.DefaultClient.Do(request)
+	if err != nil {
+		panic(err)
+	}
+
+	if res.StatusCode != 200 {
+		panic(res)
+	}
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		panic(err)
+	}
+
+	transactionHistory := &TransactionHistory{}
+	if err := json.Unmarshal(body, transactionHistory); err != nil {
+		panic(err)
+	}
+
+	if transactionHistory.HasMore {
+		resultTmp, err := GetTransactionHistory(originalTransactionId, token, transactionHistory.Revision)
+		if err != nil {
+			panic(err)
+		}
+		result = append(result, resultTmp...)
+	}
+
+	for _, transaction := range transactionHistory.SignedTransactions {
 		parts, _ := compact.Parse(transaction)
 
 		headers := parts[0]
