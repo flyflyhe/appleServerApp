@@ -5,6 +5,7 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"encoding/pem"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -14,6 +15,7 @@ import (
 	"github.com/dvsekhvalnov/jose2go/compact"
 	"github.com/dvsekhvalnov/jose2go/keys/ecc"
 	"github.com/flyflyhe/appleServerApp/config"
+	"github.com/flyflyhe/appleServerApp/services/arrayHelper"
 	"github.com/syyongx/php2go"
 	"gopkg.in/yaml.v2"
 )
@@ -184,7 +186,8 @@ func CheckOrder(orderId, token string) (result []string, err error) {
 func GetTransactionHistory(originalTransactionId, token, revision string) (result []string, err error) {
 	defer func() {
 		if err2 := recover(); err2 != nil {
-			err = NewErrMsg(err2.(string)) //这里
+			fmt.Println(err2)
+			err = NewErrMsg("异常 订单号有误或重试") //这里
 		}
 	}()
 
@@ -207,7 +210,7 @@ func GetTransactionHistory(originalTransactionId, token, revision string) (resul
 	}
 
 	if res.StatusCode != 200 {
-		panic(res)
+		panic(res.Body)
 	}
 
 	body, err := ioutil.ReadAll(res.Body)
@@ -225,6 +228,7 @@ func GetTransactionHistory(originalTransactionId, token, revision string) (resul
 		if err != nil {
 			panic(err)
 		}
+		arrayHelper.ArrayReverse(resultTmp)
 		result = append(result, resultTmp...)
 	}
 

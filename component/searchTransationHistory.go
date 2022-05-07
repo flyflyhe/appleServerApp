@@ -6,6 +6,7 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
+	"github.com/flyflyhe/appleServerApp/layouts"
 	"github.com/flyflyhe/appleServerApp/services/apple"
 	"github.com/flyflyhe/appleServerApp/services/jsonHelper"
 )
@@ -53,5 +54,8 @@ func searchTransactionHistoryView(_ fyne.Window) fyne.CanvasObject {
 	form.Append("用户原始订单号", transactionId)
 
 	//return form
-	return container.NewVBox(form, resultText)
+	layout := layouts.NewVBoxLayout()
+	layouts.SetObjConfigMap(resultText, &layouts.Size{Width: 0, Height: 300})
+	//return form
+	return container.New(layout, form, resultText)
 }
