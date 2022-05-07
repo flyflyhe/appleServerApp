@@ -140,16 +140,9 @@ func CheckOrder(orderId, token string) (result []string, err error) {
 
 		certificates = append(certificates, appleKey)
 
-		block, _ := pem.Decode([]byte(certificates[0]))
-		if block == nil {
-			panic("failed to parse certificate PEM")
-		}
-		certFirst, err := x509.ParseCertificate(block.Bytes)
-		if err != nil {
-			panic("failed to parse certificate: " + err.Error())
-		}
+		var certFirst *x509.Certificate
 
-		for i := 1; i < len(certificates); i++ {
+		for i := 0; i < len(certificates); i++ {
 			block, _ := pem.Decode([]byte(certificates[i]))
 			if block == nil {
 				panic("failed to parse certificate PEM")
@@ -157,6 +150,11 @@ func CheckOrder(orderId, token string) (result []string, err error) {
 			cert, err := x509.ParseCertificate(block.Bytes)
 			if err != nil {
 				panic("failed to parse certificate: " + err.Error())
+			}
+
+			if certFirst == nil {
+				certFirst = cert
+				continue
 			}
 
 			if err = certFirst.CheckSignatureFrom(cert); err != nil {
@@ -256,16 +254,9 @@ func GetTransactionHistory(originalTransactionId, token, revision string) (resul
 
 		certificates = append(certificates, appleKey)
 
-		block, _ := pem.Decode([]byte(certificates[0]))
-		if block == nil {
-			panic("failed to parse certificate PEM")
-		}
-		certFirst, err := x509.ParseCertificate(block.Bytes)
-		if err != nil {
-			panic("failed to parse certificate: " + err.Error())
-		}
+		var certFirst *x509.Certificate
 
-		for i := 1; i < len(certificates); i++ {
+		for i := 0; i < len(certificates); i++ {
 			block, _ := pem.Decode([]byte(certificates[i]))
 			if block == nil {
 				panic("failed to parse certificate PEM")
@@ -273,6 +264,11 @@ func GetTransactionHistory(originalTransactionId, token, revision string) (resul
 			cert, err := x509.ParseCertificate(block.Bytes)
 			if err != nil {
 				panic("failed to parse certificate: " + err.Error())
+			}
+
+			if certFirst == nil {
+				certFirst = cert
+				continue
 			}
 
 			if err = certFirst.CheckSignatureFrom(cert); err != nil {
