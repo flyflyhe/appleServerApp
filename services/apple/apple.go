@@ -185,6 +185,31 @@ func GetTransactionHistory(originalTransactionId, token, revision string) (resul
 	defer func() {
 		if err2 := recover(); err2 != nil {
 			fmt.Println(err2)
+			err = NewErrMsg("异常") //修改错误返回
+		}
+	}()
+
+	var transactionHistory *TransactionHistory
+	result, transactionHistory, err = getTransactionHistory(originalTransactionId, token, revision)
+
+	fmt.Println(transactionHistory)
+	var resultTmp []string
+	for transactionHistory.HasMore {
+		resultTmp, transactionHistory, err = getTransactionHistory(originalTransactionId, token, transactionHistory.Revision)
+		if err != nil {
+			panic(err)
+		}
+		result = append(result, resultTmp...)
+	}
+
+	arrayHelper.ArrayReverse(result)
+	return result, nil
+}
+
+func getTransactionHistory(originalTransactionId, token, revision string) (result []string, transaction *TransactionHistory, err error) {
+	defer func() {
+		if err2 := recover(); err2 != nil {
+			fmt.Println(err2)
 			err = NewErrMsg("异常 订单号有误或重试") //这里
 		}
 	}()
@@ -219,15 +244,6 @@ func GetTransactionHistory(originalTransactionId, token, revision string) (resul
 	transactionHistory := &TransactionHistory{}
 	if err := json.Unmarshal(body, transactionHistory); err != nil {
 		panic(err)
-	}
-
-	if transactionHistory.HasMore {
-		resultTmp, err := GetTransactionHistory(originalTransactionId, token, transactionHistory.Revision)
-		if err != nil {
-			panic(err)
-		}
-		arrayHelper.ArrayReverse(resultTmp)
-		result = append(result, resultTmp...)
 	}
 
 	for _, transaction := range transactionHistory.SignedTransactions {
@@ -292,7 +308,7 @@ func GetTransactionHistory(originalTransactionId, token, revision string) (resul
 		result = append(result, t)
 	}
 
-	return result, nil
+	return result, transactionHistory, nil
 }
 
 func GetAppleJwtToken() string {
