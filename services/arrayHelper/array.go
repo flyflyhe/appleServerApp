@@ -1,10 +1,6 @@
 package arrayHelper
 
-type ArrayType interface {
-	~string | ~int | ~float32
-}
-
-func ArrayReverse[T ArrayType, V []T](arr V) {
+func ArrayReverse[T any](arr []T) {
 	i := 0
 	j := len(arr) - 1
 
